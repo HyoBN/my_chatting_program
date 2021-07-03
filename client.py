@@ -1,4 +1,6 @@
 from socket import *
+from threading import *
+import time
 
 def send(sock):
     sendData = input('당신 : ')
@@ -22,9 +24,13 @@ clientSock.connect(('127.0.0.1',8106))
 print('Connected...!')
 
 
-while(True):
- 
-    if(recv(clientSock) or send(clientSock)):
-        break
+sender = Thread(target=send, args=(clientSock,))
+receiver = Thread(target=recv, args=(clientSock,))
 
+sender.start()
+receiver.start()
+
+while True:
+    time.sleep(1)
+    pass
 clientSock.close()
