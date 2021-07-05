@@ -3,22 +3,33 @@ from threading import *
 import sys
 import time
 
+
+quit_check=True
+
 def send(sock):
-    while(True):
+    global quit_check
+    while(quit_check):
         sendData = input('당신 : ')
-        sock.send(sendData.encode('utf-8'))
+        sock.send(sendData.encode('cp949'))
+        
         if(sendData == 'quit'):
             print('대화방을 나갑니다.')
+            quit_check=False
             serverSock.close()
-            sys.exit(1)
-
+            sys.exit()
+                
+            
+        
 def recv(sock):
-    while(True):
-        recvData = (sock.recv(1024)).decode('utf-8')
+    global quit_check
+    while(quit_check):
+        recvData = (sock.recv(1024)).decode('cp949')
+        
         if(recvData == 'quit'):
             print('상대방이 대화방을 나갔습니다.')
+            quit_check=False
             serverSock.close()
-            sys.exit(1)
+            sys.exit()
             
         print('상대방 :', recvData)
     return 1
@@ -50,7 +61,12 @@ receiver.daemon=True
 sender.start()
 receiver.start()
 
+sender.join()
+receiver.join()
+
 while True:
+    if(quit_check==False):
+        sys.exit()
     time.sleep(1)
     pass
 
