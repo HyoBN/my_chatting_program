@@ -29,3 +29,13 @@ sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 를 사용하면 해결할 수 있다.
 
 --------------
+
+#### 한글 인코딩,디코딩 관련.
+
+> *UnicodeDecodeError:'utf-8' codec can't decode byte 0xbc in position 0:
+
+과 같은 에러가 뜨는 이유는 한글 인코딩 방식 차이 때문인데  
+인코딩 인자를 'utf-8'이 아닌 'cp949'로 변경해주면 된다.  
+
+<인코딩 방식 차이에 관한 설명글>
+https://studyforus.tistory.com/167
