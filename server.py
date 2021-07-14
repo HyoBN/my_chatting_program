@@ -1,73 +1,66 @@
 from socket import *
 from threading import *
+from queue import *
 import sys
 import time
 
+MAX_CLIENT_NUM = 10 # 연결할 수 있는 최대 클라이언트 수.
 
-quit_check=True
-
-def send(sock):
-    global quit_check
-    while(quit_check):
-        sendData = input('당신 : ')
-        sock.send(sendData.encode('cp949'))
-        
-        if(sendData == 'quit'):
-            print('대화방을 나갑니다.')
-            quit_check=False
-            serverSock.close()
-            sys.exit()
-                
+def send(group, send_queue):
+    while True:
+        try:
+            recv = send_queue.get()
             
-        
-def recv(sock):
-    global quit_check
-    while(quit_check):
-        recvData = (sock.recv(1024)).decode('cp949')
-        
-        if(recvData == 'quit'):
-            print('상대방이 대화방을 나갔습니다.')
-            quit_check=False
-            serverSock.close()
-            sys.exit()
-            
-        print('상대방 :', recvData)
-    return 1
+            for conn in group:
+                msg = str(user_name_group[recv[3]-1]) + ' >> ' + str(recv[0]) # recv[3]이 count이므로 0번째 index부터 접근하기 위해 -1 해줌.
+                if recv[2] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로) 
+                    conn.send(bytes(msg.encode()))
+                else:
+                    pass
+        except:
+            pass
 
-    
+def recv(conn, count, send_queue):
 
+    while True:
+        data = conn.recv(1024).decode()
+        send_queue.put([data, recv_name, conn, count])
 
-print('------Server------')
-serverSock = socket(AF_INET, SOCK_STREAM)
-serverSock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1)
-serverSock.bind(('127.0.0.1', 8106))
+send_queue = Queue()
+HOST = ''
+PORT = 9190
 
-serverSock.listen(1)
+server_sock=socket(AF_INET, SOCK_STREAM)
+server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # Time-wait 에러 방지.
+server_sock.bind((HOST, PORT))
+server_sock.listen(MAX_CLIENT_NUM)
+count = 0
+group=[] # 클라이언트들의 소켓 디스크립터 저장. 서버에 연결한 순서대로 저장됨.
 
-print('연결 대기중...')
-connectionSock, addr = serverSock.accept()
-
-print(str(addr), '와 연결되었습니다!')
-
-sender = Thread(target=send, args=(connectionSock,))
-
-receiver = Thread(target=recv, args=(connectionSock,))
-
-'''
-sender.daemon=True
-receiver.daemon=True
-'''
-
-sender.start()
-receiver.start()
-
-sender.join()
-receiver.join()
+user_name_group=[] # 클라이언트들의 닉네임을 저장, 서버에 연결한 순서대로 저장됨.
 
 while True:
-    if(quit_check==False):
-        sys.exit()
-    time.sleep(1)
-    pass
+    count = count +1
+    conn, addr = server_sock.accept()
+    group.append(conn)
+    recv_name=conn.recv(1024).decode() # 유저 닉네임
+    user_name_group.append(recv_name)
+    
+    print('Connected '+ str(addr) + ', user name : '+recv_name)
+    
+    if count>1:
+        
+        sender = Thread(target=send, args=(group, send_queue,))
+        sender.start()
+        pass
+    else:
+        sender=Thread(target=send, args=(group, send_queue,))
+        sender.start()
+    
+    receiver=Thread(target=recv, args=(conn, count, send_queue,))
+    receiver.start()
+
+
+
 
 
