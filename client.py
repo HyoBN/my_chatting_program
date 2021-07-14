@@ -1,62 +1,34 @@
 from socket import *
 from threading import *
+from queue import *
 import sys
 import time
 
-quit_check=True
-def send(sock):
-    global quit_check
-    while(quit_check):
-        sendData = input('당신 : ')
-        sock.send(sendData.encode('cp949'))
+
+Host='localhost' # 서버의 IP주소를 입력하세요.
+Port = 9190 # 9190번 포트를 사용합니다.
+
+def send(client_sock, name):
+    while True:
+        send_data = bytes(input('당신('+name+') :').encode())
+        client_sock.send(send_data)
         
-        if(sendData == 'quit'):
-            print('대화방을 나갑니다.')
-            quit_check=False
-            clientSock.close()
-            sys.exit()
-            
-            
-        
-def recv(sock):
-    global quit_check
-    while(quit_check):
-        recvData = (sock.recv(1024)).decode('cp949')
-        
-        if(recvData == 'quit'):
-            print('상대방이 대화방을 나갔습니다.')
-            quit_check=False
-            clientSock.close()
-            sys.exit()
-            
-        print('상대방 :', recvData)
-    return 1
+def recv(client_sock):
+    while True:
+        recv_data= client_sock.recv(1024).decode()
+        print(recv_data)
 
+client_sock=socket(AF_INET, SOCK_STREAM)
 
-print('------client------')
-clientSock=socket(AF_INET, SOCK_STREAM)
-clientSock.connect(('127.0.0.1',8106))
+client_sock.connect((Host, Port))
+print('Connecting to',Host,Port)
 
-print('Connected...!')
+name = input('닉네임을 입력하세요 :')
+send_name=bytes(name.encode())
+client_sock.send(send_name) # 닉네임을 서버로 보내서 서버에 따로 저장함.
 
-
-sender = Thread(target=send, args=(clientSock,))
-receiver = Thread(target=recv, args=(clientSock,))
-'''
-sender.daemon=True
-receiver.daemon=True
-'''
-
+sender=Thread(target=send, args=(client_sock,name,))
 sender.start()
+
+receiver=Thread(target=recv, args=(client_sock,))
 receiver.start()
-sender.join()
-receiver.join()
-
-while True:
-    if(quit_check==False):
-        sys.exit()
-    time.sleep(1)
-    
-    pass
-
-
