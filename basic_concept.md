@@ -78,3 +78,18 @@ https://studyforus.tistory.com/167
  
  - Context Switching 비용이 적게 들고 구현하기 효율적이지만 한 번에 한 쓰레드만이 코드를 실행시킬 수 있기 때문에 멀티 쓰레드 환경에서는 성능 저하를 불러오는 문제가 있다.
  - 하지만 내가 구현하는 프로그램 수준에서는 신경쓰지 않아도 될 정도이다.
+ 
+--------------
+ 
+### 현재 시각 출력하기.
+
+```python
+import datetime
+
+now = datetime.datetime.now()
+nowTime = now.strftime('%H:%m') # 07:35 가 출력됨.
+
+```
+
+ - strfime 메소드는 시간 튜플을 받아 로컬 시간의 문자열 표현을 반환하므로 출력 형태를 원하는대로 설정할 수 있다.
+ - ex) now.strftime('시각 : [%H:%m]')  # 시각 : [10:30] 으로 출력됨.
