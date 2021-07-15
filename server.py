@@ -4,8 +4,6 @@ from queue import *
 import sys
 import datetime
 
-now = datetime.datetime.now()
-
 
 MAX_CLIENT_NUM = 10 # 연결할 수 있는 최대 클라이언트 수.
 
@@ -15,7 +13,10 @@ def send(socket_descriptors, member_info):
             recv = member_info.get()
             
             for conn in socket_descriptors:
-                nowTime=now.strftime('[%H:%M] ')
+                
+                now = datetime.datetime.now()
+                nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
+                
                 msg = str(nowTime + member_name[recv[3]-1]) + ' : ' + str(recv[0]) # recv[3]이 count이므로 0번째 index부터 접근하기 위해 -1 해줌.
                 if recv[2] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로) 
                     conn.send(bytes(msg.encode()))
