@@ -47,9 +47,24 @@ member_name=[] # 클라이언트들의 닉네임을 저장, 서버에 연결한 
 while True:
     count = count +1
     conn, addr = server_sock.accept()
-    socket_descriptors.append(conn)
-    recv_name=conn.recv(1024).decode() # 유저 닉네임
+    
+    recv_name=''
+    #recv_name=conn.recv(1024).decode() # 유저 닉네임
+    
+    
+    while True:
+        recv_name=conn.recv(1024).decode() # 유저 닉네임
+        if not recv_name in member_name:
+            print('목록에 없습니다.')
+            conn.send(bytes('checked'.encode()))
+            break
+        else:
+            print('닉네임이 중복됩니다!')
+            msg='overlapped'
+            conn.send(bytes(msg.encode())) 
     member_name.append(recv_name)
+    
+    socket_descriptors.append(conn) # 닉네임 등록까지 정상적으로 마쳐야 클라이언트 간 통신 가능하도록 코드 배치, 닉네임 설정 안한 상태에서 다른 클라이언트가 보낸 메시지를 recv하는 경우 방지.
     
     print('Connected '+ str(addr) + ', user name : '+recv_name)
     

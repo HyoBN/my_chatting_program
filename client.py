@@ -12,7 +12,7 @@ def send(client_sock, name):
     while True:
         send_data = bytes(input('당신('+name+') :').encode())
         client_sock.send(send_data)
-        
+
 def recv(client_sock):
     while True:
         recv_data= client_sock.recv(1024).decode()
@@ -21,11 +21,21 @@ def recv(client_sock):
 client_sock=socket(AF_INET, SOCK_STREAM)
 
 client_sock.connect((Host, Port))
-print('Connecting to',Host,Port)
+print('[SYSTEM] 연결하는 서버 정보 : ',Host,Port)
 
-name = input('닉네임을 입력하세요 :')
-send_name=bytes(name.encode())
-client_sock.send(send_name) # 닉네임을 서버로 보내서 서버에 따로 저장함.
+while True:
+    name = input('닉네임을 입력하세요 :')
+    send_name=bytes(name.encode())
+    client_sock.send(send_name) # 닉네임을 서버로 보내서 서버에 따로 저장함.
+
+    nickname_msg=client_sock.recv(1024).decode() # 닉네임 중복 여부를 서버로부터 받음.
+    
+    if nickname_msg=='checked':
+        break
+        
+    elif nickname_msg=='overlapped':
+        print('[SYSTEM] 이미 사용중인 닉네임입니다.')
+    
 
 sender=Thread(target=send, args=(client_sock,name,))
 sender.start()
