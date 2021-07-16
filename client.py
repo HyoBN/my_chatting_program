@@ -14,6 +14,12 @@ def send(client_sock, name):
         send_data = bytes(msg.encode())
         client_sock.send(send_data)
 
+        if msg=='!quit':
+            break;
+
+    print('서버와의 연결을 종료합니다.')
+    client_sock.close()
+
 def recv(client_sock):
     while True:
         recv_data= client_sock.recv(1024).decode()
@@ -41,7 +47,7 @@ while True:
     
 
 sender=Thread(target=send, args=(client_sock,name,))
-#sender.daemon=True
+sender.daemon=True
 sender.start()
 
 receiver=Thread(target=recv, args=(client_sock,))

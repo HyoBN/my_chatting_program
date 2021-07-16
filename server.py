@@ -10,6 +10,8 @@ MAX_CLIENT_NUM = 10 # 연결할 수 있는 최대 클라이언트 수.
 def send(socket_descriptors, msg_info):
     while True:
         try:
+            global member_name
+            
             recv = msg_info.get()
             print('메시지 보낼 준비 완료..! ['+ str(recv[0])+']')
             for conn in socket_descriptors:
@@ -18,9 +20,15 @@ def send(socket_descriptors, msg_info):
 
                 now = datetime.datetime.now()
                 nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
+                #~~~~~~~~~~~~
                 
-                msg = str(nowTime + member_name[recv[3]]) + ' : ' + str(recv[0]) # recv[3]이 count.
-                if recv[2] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로) 
+                if recv[0]=='quit':
+                    msg=str('[SYSTEM] '+nowTime+member_name[recv[3]]+'님이 연결을 종료하였습니다.')
+                    member_name[recv[3]]='-1'
+                    
+                else:
+                    msg = str(nowTime + member_name[recv[3]]) + ' : ' + str(recv[0]) # recv[3]이 count.
+                if recv[2] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로)
                     conn.send(bytes(msg.encode()))
                 else:
                     pass
@@ -32,12 +40,16 @@ def recv(conn, count, msg_info):
     while True:
         data = conn.recv(1024).decode()
         if data == '!quit': ## 해당 클라이언트가 연결을 종료하려고 할 때.
+            data=str(member_name[count] + '님이 연결을 종료하였습니다.')
             socket_descriptors[count-1]='-1'
             member_name[count]='-1'
             
+            
+            
         msg_info.put([data, recv_name, conn, count])
         print('received..! 메시지 : ' + data)
-
+    conn.close()
+    
 msg_info = Queue()
 HOST = ''
 PORT = 9190
@@ -77,16 +89,16 @@ while True:
     if count>1:
 
         sender = Thread(target=send, args=(socket_descriptors, msg_info,))
-        sender.daemon=True
+        #sender.daemon=True
         sender.start()
         pass
     else:
         sender=Thread(target=send, args=(socket_descriptors, msg_info,))
-        sender.daemon=True
+        #sender.daemon=True
         sender.start()
     
     receiver=Thread(target=recv, args=(conn, count, msg_info,))
-    receiver.daemon=True
+    #receiver.daemon=True
     receiver.start()
 
 
