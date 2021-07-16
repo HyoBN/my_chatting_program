@@ -10,7 +10,8 @@ Port = 9190 # 9190번 포트를 사용합니다.
 
 def send(client_sock, name):
     while True:
-        send_data = bytes(input('당신('+name+') :').encode())
+        msg=input('당신('+name+') :')
+        send_data = bytes(msg.encode())
         client_sock.send(send_data)
 
 def recv(client_sock):
@@ -31,6 +32,8 @@ while True:
     nickname_msg=client_sock.recv(1024).decode() # 닉네임 중복 여부를 서버로부터 받음.
     
     if nickname_msg=='checked':
+        print('연결을 종료하려면 !quit 를 입력하세요.')
+        print('[SYSTEM] '+name+'님이 입장하였습니다.')
         break
         
     elif nickname_msg=='overlapped':
@@ -38,7 +41,9 @@ while True:
     
 
 sender=Thread(target=send, args=(client_sock,name,))
+#sender.daemon=True
 sender.start()
 
 receiver=Thread(target=recv, args=(client_sock,))
+#receiver.daemon=True
 receiver.start()
