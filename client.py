@@ -25,7 +25,7 @@ def recv(client_sock):
         recv_data= client_sock.recv(1024).decode()
         print(recv_data)
 
-client_sock=socket(AF_INET, SOCK_STREAM)
+client_sock= socket(AF_INET, SOCK_STREAM)
 
 client_sock.connect((Host, Port))
 print('[SYSTEM] 연결하는 서버 정보 : ',Host,Port)
@@ -41,6 +41,7 @@ while True:
         print('연결을 종료하려면 !quit 를 입력하세요.')
         print('[SYSTEM] '+name+'님이 입장하였습니다.')
         break
+        
         
     elif nickname_msg=='overlapped':
         print('[SYSTEM] 이미 사용중인 닉네임입니다.')
