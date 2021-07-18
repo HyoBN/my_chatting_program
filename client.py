@@ -35,17 +35,20 @@ while True:
     send_name=bytes(name.encode())
     client_sock.send(send_name) # 닉네임을 서버로 보내서 서버에 따로 저장함.
 
-    nickname_msg=client_sock.recv(1024).decode() # 닉네임 중복 여부를 서버로부터 받음.
+    nickname_able_msg=client_sock.recv(1024).decode() # 닉네임 중복 여부를 서버로부터 받음.
     
-    if nickname_msg=='checked':
+    if nickname_able_msg=='checked':
         print('연결을 종료하려면 !quit 를 입력하세요.')
-        print('[SYSTEM] '+name+'님이 입장하였습니다.')
+        print('[SYSTEM] 채팅방에 입장하였습니다.')
+        
+        enter_msg=bytes('enter'.encode()) # 연결 시 다른 클라이언트들에게 연결 사실 알리기 위한 메시지.
+        client_sock.send(enter_msg)
         break
         
         
-    elif nickname_msg=='overlapped':
+    elif nickname_able_msg=='overlapped':
         print('[SYSTEM] 이미 사용중인 닉네임입니다.')
-    
+
 
 sender=Thread(target=send, args=(client_sock,name,))
 sender.daemon=True
