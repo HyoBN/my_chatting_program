@@ -93,3 +93,23 @@ nowTime = now.strftime('%H:%m') # 07:35 가 출력됨.
 
  - strfime 메소드는 시간 튜플을 받아 로컬 시간의 문자열 표현을 반환하므로 출력 형태를 원하는대로 설정할 수 있다.
  - ex) now.strftime('시각 : [%H:%m]')  # 시각 : [10:30] 으로 출력됨.
+
+--------------
+
+### 파이썬 전역변수 특징.
+
+파이썬의 객체들은 mutable / immutable 두 가지로 분류할 수 있다.  
+
+#### immutable : 변경불가능한.
+- call by value로 동작하여 값만 변경되더라도 새로운 객체로 생성 된다.
+- 즉, 전역변수로 선언한 변수가 특정 함수 내에서 호출되어 사용되면 그 함수 내에서 지역변수로 새로 생성된다.
+- 함수 내에서 전역변수의 값을 변경하기 위해서는 global 을 사용해야 한다.
+- immutable 자료형 종류 : bool, int , str, tuple
+
+#### mutable : 변경가능한.
+- call by reference로 동작한다.
+- 함수에 매개변수로 객체를 전달하면(parameter passing) global을 사용할 필요없이 객체의 일부를 indexing, slicing 등을 통해 변경할 수 있다.
+- 하지만, 값을 재할당하려면 global을 사용해야 한다.
+ 
+- mutable 자료형 종류 : list, dict, set
+
