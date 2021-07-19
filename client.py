@@ -9,6 +9,7 @@ Host='localhost' # 서버의 IP주소를 입력하세요.
 Port = 9190 # 9190번 포트를 사용합니다.
 
 def send(client_sock, name):
+    
     while True:
         msg=input('당신('+name+') :')
         send_data = bytes(msg.encode())
@@ -21,8 +22,10 @@ def send(client_sock, name):
     client_sock.close()
 
 def recv(client_sock):
+    
     while True:
         recv_data= client_sock.recv(1024).decode()
+        print('\n')
         print(recv_data)
 
 client_sock= socket(AF_INET, SOCK_STREAM)
@@ -40,7 +43,6 @@ while True:
     if nickname_able_msg=='checked':
         print('연결을 종료하려면 !quit 를 입력하세요.')
         print('[SYSTEM] 채팅방에 입장하였습니다.')
-        
         enter_msg=bytes('enter'.encode()) # 연결 시 다른 클라이언트들에게 연결 사실 알리기 위한 메시지.
         client_sock.send(enter_msg)
         break
