@@ -5,7 +5,7 @@ import sys
 import datetime
 
 #------------- 서버 세팅 -------------
-HOST = '' # 서버 ip 주소 .
+HOST = '127.0.0.1' # 서버 ip 주소 .
 PORT = 9190 # 사용할 포트 번호.
 MAX_CLIENT_NUM = 10 # 연결할 수 있는 최대 클라이언트 수.
 #------------------------------------
@@ -26,12 +26,13 @@ def send(msg_info):
             
             for conn in socket_descriptors:
                 global left_member_name
-                
+                    
                 if conn =='-1': # 연결 종료한 클라이언트 경우.
                     continue
 
                 if recv[0]=='!quit':
                     msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.' # get을 여러 번 x
+                    conn.close() # ~~~~~~~~~~~~~~~~~~ing
                     
                 elif recv[0]=='enter':
                     msg=str('[SYSTEM] '+now_time()+member_name[recv[3]])+'님이 입장하였습니다.'

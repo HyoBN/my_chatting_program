@@ -2,10 +2,11 @@ from socket import *
 from threading import *
 from queue import *
 import sys
+import os
 import time
 
 
-Host='localhost' # 서버의 IP주소를 입력하세요.
+Host='127.0.0.1' # 서버의 IP주소를 입력하세요.
 Port = 9190 # 9190번 포트를 사용합니다.
 
 def send(client_sock, name):
@@ -16,16 +17,18 @@ def send(client_sock, name):
         client_sock.send(send_data)
 
         if msg=='!quit':
-            break;
+            break
 
     print('서버와의 연결을 종료합니다.')
-    client_sock.close()
+    client_sock.close() # ~~~~~~~~~~~~~~~~~ing
+    print('연결을 종료하였습니다.')
+    os._exit(1) # ~~~~~~~~~~~~~~~~~~~~~~~~ing
 
 def recv(client_sock):
     
     while True:
         recv_data= client_sock.recv(1024).decode()
-        print('\n')
+        #print('\n')
         print(recv_data)
 
 client_sock= socket(AF_INET, SOCK_STREAM)
@@ -34,7 +37,10 @@ client_sock.connect((Host, Port))
 print('[SYSTEM] 연결하는 서버 정보 : ',Host,Port)
 
 while True:
+    
     name = input('닉네임을 입력하세요 :')
+    
+        
     send_name=bytes(name.encode())
     client_sock.send(send_name) # 닉네임을 서버로 보내서 서버에 따로 저장함.
 
