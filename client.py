@@ -12,12 +12,21 @@ Port = 9190 # 9190번 포트를 사용합니다.
 def send(client_sock, name):
     
     while True:
-        msg=input('당신('+name+') :')
-        send_data = bytes(msg.encode())
-        client_sock.send(send_data)
+        
+    
+        try:
+            msg=input('당신('+name+') :')
+            send_data = bytes(msg.encode())
+            
 
-        if msg=='!quit':
-            break
+            if msg=='!quit':
+                break
+        except:
+            print('메시지 전송에 실패하였습니다.')
+            continue
+        else:
+            client_sock.send(send_data)
+            
 
     print('서버와의 연결을 종료합니다.')
     client_sock.close() # ~~~~~~~~~~~~~~~~~ing
