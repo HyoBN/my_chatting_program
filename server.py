@@ -17,7 +17,7 @@ def now_time(): # 현재 시각 반환하는 함수.
     return nowTime
 
 
-def send(msg_info,lock):
+def send(lock):
 
     while True:
 
@@ -31,10 +31,10 @@ def send(msg_info,lock):
                 lock.release() # left_member_name에 대한 Lock.
                     
             elif recv[0]=='enter':
-                msg=str('[SYSTEM] '+now_time()+member_name[recv[3]])+'님이 입장하였습니다.'
+                msg=str('[SYSTEM] '+now_time()+member_name[recv[2]])+'님이 입장하였습니다.'
 
             else:
-                msg = str(now_time() + member_name[recv[3]]) + ' : ' + str(recv[0]) # recv[3]이 count.
+                msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0]) # recv[3]이 count.
 
             for conn in socket_descriptors:
 
@@ -42,18 +42,20 @@ def send(msg_info,lock):
                 if conn =='-1': # 연결 종료한 클라이언트 경우.
                     continue
 
-                if recv[2] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로)
+                if recv[1] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로)
                     conn.send(bytes(msg.encode()))
 
                 else:
                     pass
 
             if recv[0] =='!quit':
-                recv[2].close()
+                recv[1].close()
         except:
             pass
 
-def recv(conn, count, msg_info,lock):
+        
+        
+def recv(conn, count, lock):
 
     if socket_descriptors[count-1]=='-1':
         return -1
@@ -63,12 +65,11 @@ def recv(conn, count, msg_info,lock):
 
         lock.acquire() # left_member_name와 count 에 대한 Lock.
 
-        msg_info.put([data, recv_name, conn, count]) # 일단 queue에 넣고,
+        msg_info.put([data, conn, count]) # 일단 queue에 넣고,
 
         lock.release()
 
         if data == '!quit': # 해당 클라이언트가 연결을 종료하려고 할 때.
-            print('나갈래!!')
             lock.acquire() # left_member_name와 count 에 대한 Lock.
             socket_descriptors[count-1]='-1'
             left_member_name=member_name[count] # 종료한 클라이언트 닉네임 저장.
@@ -86,7 +87,7 @@ server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # Time-wait 에러 방지.
 server_sock.bind((HOST, PORT))
 server_sock.listen(MAX_CLIENT_NUM)
 
-#------------- mutex 적용해야하는 전역 변수들.-------------------------
+
 count = 0
 socket_descriptors=[] # 클라이언트들의 소켓 디스크립터 저장.
 
@@ -98,7 +99,6 @@ left_member_name=''
 
 lock=Lock()
 
-#------------------------------------------------------------
 
 
 while True:
@@ -124,19 +124,19 @@ while True:
 
     if count>1:
 
-        sender = Thread(target=send, args=(msg_info,lock))
+        sender = Thread(target=send, args=(lock,))
         #sender.daemon=True
         sender.start()
         #sender.join()
         pass
     
     else:
-        sender=Thread(target=send, args=(msg_info,lock))
+        sender=Thread(target=send, args=(lock,))
         #sender.daemon=True
         sender.start()
         #sender.join()
     
-    receiver=Thread(target=recv, args=(conn, count, msg_info,lock))
+    receiver=Thread(target=recv, args=(conn, count, lock))
     #receiver.daemon=True
     receiver.start()
     #receiver.join()
