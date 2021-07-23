@@ -9,7 +9,7 @@ import time
 Host='127.0.0.1' # 서버의 IP주소를 입력하세요.
 Port = 9190 # 9190번 포트를 사용합니다.
 
-def send(client_sock, name):
+def send(client_sock):
 
     while True:
 
@@ -30,14 +30,24 @@ def send(client_sock, name):
     print('서버와의 연결을 종료합니다.')
     client_sock.close() 
     print('연결을 종료하였습니다.')
-    os._exit(1) 
+    os._exit(1)
 
 def recv(client_sock):
 
     while True:
-        recv_data= client_sock.recv(1024).decode()
-        #print('\n')
-        print(recv_data)
+        try:    
+            recv_data= client_sock.recv(1024).decode()
+            
+            if len(recv_data)==0:
+                print('[SYSTEM] 서버와의 연결이 끊어졌습니다.')
+                os._exit(1)
+        except:
+            print('메시지를 수신하지 못하였슶니다.')
+            
+        else:
+            print(recv_data)
+            pass
+
 
 client_sock= socket(AF_INET, SOCK_STREAM)
 
@@ -66,7 +76,7 @@ while True:
         print('[SYSTEM] 이미 사용중인 닉네임입니다.')
 
 
-sender=Thread(target=send, args=(client_sock,name,))
+sender=Thread(target=send, args=(client_sock,))
 sender.daemon=True
 sender.start()
 
