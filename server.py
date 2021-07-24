@@ -24,8 +24,7 @@ def send(lock):
         try:
             global left_member_name
             recv = msg_info.get()
-
-            if recv[0]=='!quit':
+            if recv[0]=='!quit' or len(recv[0])==0:
                 lock.acquire() # left_member_name에 대한 Lock.
                 msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.'
                 lock.release() # left_member_name에 대한 Lock.
@@ -37,7 +36,6 @@ def send(lock):
                 msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0]) # recv[3]이 count.
 
             for conn in socket_descriptors:
-
 
                 if conn =='-1': # 연결 종료한 클라이언트 경우.
                     continue
@@ -62,14 +60,13 @@ def recv(conn, count, lock):
     while True:
         global left_member_name
         data = conn.recv(1024).decode()
-
         lock.acquire() # left_member_name와 count 에 대한 Lock.
 
         msg_info.put([data, conn, count]) # 일단 queue에 넣고,
 
         lock.release()
 
-        if data == '!quit': # 해당 클라이언트가 연결을 종료하려고 할 때.
+        if data == '!quit' or len(data)==0: # 해당 클라이언트가 연결을 종료하려고 할 때.
             lock.acquire() # left_member_name와 count 에 대한 Lock.
             socket_descriptors[count-1]='-1'
             left_member_name=member_name[count] # 종료한 클라이언트 닉네임 저장.
@@ -100,7 +97,6 @@ left_member_name=''
 lock=Lock()
 
 
-
 while True:
     count = count +1
     conn, addr = server_sock.accept()
@@ -108,7 +104,7 @@ while True:
 
     while True:
         recv_name=conn.recv(1024).decode() # 유저 닉네임
-        
+
         if not recv_name in member_name:
             conn.send(bytes('checked'.encode()))
             break
