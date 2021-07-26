@@ -14,6 +14,7 @@ def send(client_sock):
     while True:
 
         try:
+            # 버퍼 비우기?
             msg=input('당신('+name+') :')
             send_data = bytes(msg.encode())
 
@@ -27,30 +28,32 @@ def send(client_sock):
                 break
 
 
-    print('서버와의 연결을 종료합니다.')
-    client_sock.close() 
-    print('연결을 종료하였습니다.')
+    print('서버와의 연결을 종료하였습니다.')
+    client_sock.close()
     os._exit(1)
 
 def recv(client_sock):
 
     while True:
-        try:    
+        global send_data
+        try:
             recv_data= client_sock.recv(1024).decode()
             
             if len(recv_data)==0:
                 print('[SYSTEM] 서버와의 연결이 끊어졌습니다.')
+                client_sock.close()
                 os._exit(1)
         except:
-            print('메시지를 수신하지 못하였슶니다.')
+            print('[SYSTEM] 메시지를 수신하지 못하였습니다.')
             
         else:
-            print(recv_data)
+            print('\r'+recv_data+'                                             ') #----------
+            
             pass
 
 
 client_sock= socket(AF_INET, SOCK_STREAM)
-
+client_sock.setsockopt(SOL_TCP,TCP_NODELAY,1)
 client_sock.connect((Host, Port))
 print('[SYSTEM] 연결하는 서버 정보 : ',Host,Port)
 
@@ -75,9 +78,13 @@ while True:
     elif nickname_able_msg=='overlapped':
         print('[SYSTEM] 이미 사용중인 닉네임입니다.')
 
+    elif len(client_sock.recv(1024).decode())==0:
+        print('[SYSTEM] 서버와의 연결이 끊어졌습니다.')
+        client_sock.close()
+        os._exit(1)
 
 sender=Thread(target=send, args=(client_sock,))
-sender.daemon=True
+#sender.daemon=True
 sender.start()
 
 receiver=Thread(target=recv, args=(client_sock,))
