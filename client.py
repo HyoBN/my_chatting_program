@@ -69,8 +69,21 @@ def recv(client_sock):
 
 client_sock= socket(AF_INET, SOCK_STREAM)
 client_sock.setsockopt(SOL_TCP,TCP_NODELAY,1)
-client_sock.connect((Host, Port))
-print('[SYSTEM] 서버와 연결되었습니다.')
+
+try:
+    client_sock.connect((Host, Port))
+
+
+except ConnectionRefusedError:
+    print('서버에 연결할 수 없습니다.')
+    print('1. 서버의 ip주소와 포트번호가 올바른지 확인하십시오.')
+    print('2. 서버 실행 여부를 확인하십시오.')
+    os._exit(1)
+except:
+    print('다른 이유로 인해 서버에 연결할 수 없습니다!!')
+    
+else:
+    print('[SYSTEM] 서버와 연결되었습니다.')
 
 while True:
 
