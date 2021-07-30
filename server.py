@@ -16,7 +16,6 @@ def now_time(): # 현재 시각 반환하는 함수.
     nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
     return nowTime
 
-
 def send(lock):
 
     while True:
@@ -24,14 +23,26 @@ def send(lock):
         try:
             global left_member_name
             recv = msg_info.get()
+            
             if recv[0]=='!quit' or len(recv[0])==0:
                 lock.acquire() # left_member_name에 대한 Lock.
                 msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.'
                 lock.release() # left_member_name에 대한 Lock.
-                    
+
             elif recv[0]=='enter':
+                mem_msg='현재 멤버 : '
+                for mem in member_name:
+                    if mem!='-1':
+                        mem_msg+='('+mem+') '
+                
+                recv[1].send(bytes(mem_msg.encode()))
                 msg=str('[SYSTEM] '+now_time()+member_name[recv[2]])+'님이 입장하였습니다.'
 
+            elif recv[0]=='!member':
+                print('멤버!!')
+                
+                continue
+                
             else:
                 msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0]) # recv[3]이 count.
 
@@ -51,8 +62,8 @@ def send(lock):
         except:
             pass
 
-        
-        
+
+
 def recv(conn, count, lock):
 
     if socket_descriptors[count-1]=='-1':
@@ -74,7 +85,7 @@ def recv(conn, count, lock):
             member_name[count]='-1'
             lock.release()
             break
-
+            
 
     conn.close()
 
@@ -108,11 +119,11 @@ while True:
         if not recv_name in member_name:
             conn.send(bytes('checked'.encode()))
             break
-            
+
         else:
             msg='overlapped'
             conn.send(bytes(msg.encode()))
-            
+
     member_name.append(recv_name)
     socket_descriptors.append(conn) # 닉네임 등록까지 정상적으로 마쳐야 클라이언트 간 통신 가능하도록 코드 배치, 닉네임 설정 안한 상태에서 다른 클라이언트가 보낸 메시지를 recv하는 경우 방지.
 
@@ -125,7 +136,7 @@ while True:
         sender.start()
         #sender.join()
         pass
-    
+
     else:
         sender=Thread(target=send, args=(lock,))
         #sender.daemon=True
