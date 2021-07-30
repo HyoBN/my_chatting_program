@@ -3,23 +3,38 @@ from threading import *
 from queue import *
 import sys
 import os
-import time
+import datetime
 
 
 Host='127.0.0.1' # 서버의 IP주소를 입력하세요.
 Port = 9190 # 9190번 포트를 사용합니다.
+
+def now_time(): # 현재 시각 반환하는 함수.
+    now = datetime.datetime.now()
+    nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
+    return nowTime
+
+def enter_menu():
+    print()
+    print('  -------------< 사용 방법 >-------------')
+    print('   연결 종료 : !quit 입력 or ctrl + c    ')
+    print('   참여 중인 멤버 보기 : !member 입력     ')
+    print()
+    print('   이 프로그램 사용은 Jupyter Notebook에  ')
+    print('           최적화되어 있습니다.             ')
+    print('  ---------------------------------------\n\n')
+
 
 def send(client_sock):
 
     while True:
 
         try:
-            # 버퍼 비우기?
             msg=input('당신('+name+') :')
             send_data = bytes(msg.encode())
 
         except:
-            print('메시지 전송에 실패하였습니다.')
+            print('[SYSTEM] 메시지 전송에 실패하였습니다.')
             continue
             
         else:
@@ -45,21 +60,21 @@ def recv(client_sock):
                 os._exit(1)
         except:
             print('[SYSTEM] 메시지를 수신하지 못하였습니다.')
-            
+
         else:
-            print('\r'+recv_data+'                                             ') #----------
-            
+            print('\r'+recv_data+'                                             ')
+
             pass
 
 
 client_sock= socket(AF_INET, SOCK_STREAM)
 client_sock.setsockopt(SOL_TCP,TCP_NODELAY,1)
 client_sock.connect((Host, Port))
-print('[SYSTEM] 연결하는 서버 정보 : ',Host,Port)
+print('[SYSTEM] 서버와 연결되었습니다.')
 
 while True:
 
-    name = input('닉네임을 입력하세요 :')
+    name = input('사용하실 닉네임을 입력하세요 :')
 
 
     send_name=bytes(name.encode())
@@ -68,9 +83,9 @@ while True:
     nickname_able_msg=client_sock.recv(1024).decode() # 닉네임 중복 여부를 서버로부터 받음.
 
     if nickname_able_msg=='checked':
-        print('연결을 종료하려면 !quit 를 입력하세요.')
-        print('[SYSTEM] 채팅방에 입장하였습니다.')
-        enter_msg=bytes('enter'.encode()) # 연결 시 다른 클라이언트들에게 연결 사실 알리기 위한 메시지.
+        enter_menu()
+        print(now_time()+ '채팅방에 입장하였습니다.')
+        enter_msg=bytes('!member'.encode()) 
         client_sock.send(enter_msg)
         break
 
@@ -82,11 +97,9 @@ while True:
         print('[SYSTEM] 서버와의 연결이 끊어졌습니다.')
         client_sock.close()
         os._exit(1)
-
+        
 sender=Thread(target=send, args=(client_sock,))
-#sender.daemon=True
 sender.start()
 
 receiver=Thread(target=recv, args=(client_sock,))
-#receiver.daemon=True
 receiver.start()

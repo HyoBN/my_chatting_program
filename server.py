@@ -29,19 +29,15 @@ def send(lock):
                 msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.'
                 lock.release() # left_member_name에 대한 Lock.
 
-            elif recv[0]=='enter':
+            elif recv[0]=='!member':
                 mem_msg='현재 멤버 : '
                 for mem in member_name:
                     if mem!='-1':
                         mem_msg+='('+mem+') '
-                
+
                 recv[1].send(bytes(mem_msg.encode()))
                 msg=str('[SYSTEM] '+now_time()+member_name[recv[2]])+'님이 입장하였습니다.'
 
-            elif recv[0]=='!member':
-                print('멤버!!')
-                
-                continue
                 
             else:
                 msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0]) # recv[3]이 count.
@@ -51,7 +47,7 @@ def send(lock):
                 if conn =='-1': # 연결 종료한 클라이언트 경우.
                     continue
 
-                if recv[1] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함(이미 터미널 창 상에서 출력이 되므로)
+                if recv[1] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함
                     conn.send(bytes(msg.encode()))
 
                 else:
@@ -81,15 +77,14 @@ def recv(conn, count, lock):
             lock.acquire() # left_member_name와 count 에 대한 Lock.
             socket_descriptors[count-1]='-1'
             left_member_name=member_name[count] # 종료한 클라이언트 닉네임 저장.
-            print('[SYSTEM] '+str(now_time()+ member_name[count]) + '님이 연결을 종료하였습니다.')
+            print(str(now_time()+ member_name[count]) + '님이 연결을 종료하였습니다.')
             member_name[count]='-1'
             lock.release()
             break
-            
 
     conn.close()
 
-
+print(now_time()+'서버를 시작합니다')
 server_sock=socket(AF_INET, SOCK_STREAM)
 server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # Time-wait 에러 방지.
 server_sock.bind((HOST, PORT))
@@ -125,9 +120,9 @@ while True:
             conn.send(bytes(msg.encode()))
 
     member_name.append(recv_name)
-    socket_descriptors.append(conn) # 닉네임 등록까지 정상적으로 마쳐야 클라이언트 간 통신 가능하도록 코드 배치, 닉네임 설정 안한 상태에서 다른 클라이언트가 보낸 메시지를 recv하는 경우 방지.
+    socket_descriptors.append(conn)
 
-    print(str(now_time())+'Connected '+ str(addr) + ', user name : '+recv_name)
+    print(str(now_time())+recv_name+'님이 연결되었습니다. 연결 ip 주소 : '+ str(addr[0]))
 
     if count>1:
 
@@ -139,14 +134,10 @@ while True:
 
     else:
         sender=Thread(target=send, args=(lock,))
-        #sender.daemon=True
         sender.start()
-        #sender.join()
     
     receiver=Thread(target=recv, args=(conn, count, lock))
-    #receiver.daemon=True
     receiver.start()
-    #receiver.join()
 
 
 
