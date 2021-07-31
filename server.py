@@ -7,7 +7,7 @@ import datetime
 #------------- 서버 세팅 -------------
 HOST = '127.0.0.1' # 서버 ip 주소 .
 PORT = 9190 # 사용할 포트 번호.
-MAX_CLIENT_NUM = 10 # 연결할 수 있는 최대 클라이언트 수.
+MAX_CLIENT_NUM = 1 # 연결할 수 있는 최대 클라이언트 수.
 #------------------------------------
 
 
@@ -29,7 +29,7 @@ def send(lock):
                 msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.'
                 lock.release() # left_member_name에 대한 Lock.
 
-            elif recv[0]=='!member':
+            elif recv[0]=='!enter':
                 mem_msg='현재 멤버 : '
                 for mem in member_name:
                     if mem!='-1':
@@ -37,6 +37,14 @@ def send(lock):
 
                 recv[1].send(bytes(mem_msg.encode()))
                 msg=str('[SYSTEM] '+now_time()+member_name[recv[2]])+'님이 입장하였습니다.'
+            
+            elif recv[0]=='!member':
+                mem_msg='현재 멤버 : '
+                for mem in member_name:
+                    if mem!='-1':
+                        mem_msg+='('+mem+') '
+
+                recv[1].send(bytes(mem_msg.encode()))
 
                 
             else:
