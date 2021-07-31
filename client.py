@@ -81,13 +81,22 @@ except ConnectionRefusedError:
     os._exit(1)
 except:
     print('다른 이유로 인해 서버에 연결할 수 없습니다!!')
-    
+
 else:
     print('[SYSTEM] 서버와 연결되었습니다.')
 
 while True:
 
     name = input('사용하실 닉네임을 입력하세요 :')
+    
+    flag=False
+    for i in name:
+        if i.isspace():
+            print('공백은 입력이 불가능합니다.')
+            flag=True
+            break
+    if flag==True:
+        continue
 
 
     send_name=bytes(name.encode())
@@ -98,7 +107,7 @@ while True:
     if nickname_able_msg=='checked':
         enter_menu()
         print(now_time()+ '채팅방에 입장하였습니다.')
-        enter_msg=bytes('!member'.encode()) 
+        enter_msg=bytes('!enter'.encode()) 
         client_sock.send(enter_msg)
         break
 
