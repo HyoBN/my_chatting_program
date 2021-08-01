@@ -5,13 +5,13 @@ import sys
 import os
 import datetime
 
-
+#--------------클라이언트 세팅 -----------------------
 Host='127.0.0.1' # 서버의 IP주소를 입력하세요.
-Port = 9190 # 9190번 포트를 사용합니다.
+Port = 9190 # 사용할 포트 번호. 
 
-def now_time(): # 현재 시각 반환하는 함수.
+def now_time(): 
     now = datetime.datetime.now()
-    nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
+    nowTime=now.strftime('[%H:%M] ')
     return nowTime
 
 def enter_menu():
@@ -28,7 +28,6 @@ def enter_menu():
 def send(client_sock):
 
     while True:
-
         try:
             msg=input('당신('+name+') :')
             send_data = bytes(msg.encode())
@@ -42,11 +41,11 @@ def send(client_sock):
             if msg=='!quit':
                 break
 
-
     print('서버와의 연결을 종료하였습니다.')
     client_sock.close()
     os._exit(1)
 
+    
 def recv(client_sock):
 
     while True:
@@ -63,24 +62,22 @@ def recv(client_sock):
 
         else:
             print('\r'+recv_data+'                                             ')
-
             pass
 
 
 client_sock= socket(AF_INET, SOCK_STREAM)
-client_sock.setsockopt(SOL_TCP,TCP_NODELAY,1)
 
 try:
     client_sock.connect((Host, Port))
-
 
 except ConnectionRefusedError:
     print('서버에 연결할 수 없습니다.')
     print('1. 서버의 ip주소와 포트번호가 올바른지 확인하십시오.')
     print('2. 서버 실행 여부를 확인하십시오.')
     os._exit(1)
+    
 except:
-    print('다른 이유로 인해 서버에 연결할 수 없습니다!!')
+    print('다른 이유로 인해 서버에 연결할 수 없습니다. 만든 사람에게 문의하세요.')
 
 else:
     print('[SYSTEM] 서버와 연결되었습니다.')
@@ -88,8 +85,8 @@ else:
 while True:
 
     name = input('사용하실 닉네임을 입력하세요 :')
-    
     flag=False
+    
     for i in name:
         if i.isspace():
             print('공백은 입력이 불가능합니다.')
@@ -98,11 +95,9 @@ while True:
     if flag==True:
         continue
 
-
     send_name=bytes(name.encode())
-    client_sock.send(send_name) # 닉네임을 서버로 보내서 서버에 따로 저장함.
-
-    nickname_able_msg=client_sock.recv(1024).decode() # 닉네임 중복 여부를 서버로부터 받음.
+    client_sock.send(send_name)
+    nickname_able_msg=client_sock.recv(1024).decode()
 
     if nickname_able_msg=='checked':
         enter_menu()
@@ -110,7 +105,6 @@ while True:
         enter_msg=bytes('!enter'.encode()) 
         client_sock.send(enter_msg)
         break
-
 
     elif nickname_able_msg=='overlapped':
         print('[SYSTEM] 이미 사용중인 닉네임입니다.')
