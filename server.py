@@ -11,44 +11,56 @@ MAX_CLIENT_NUM = 1 # 연결할 수 있는 최대 클라이언트 수.
 #------------------------------------
 
 
+s=''
+s+='\n  -------------< 사용 방법 >-------------'
+s+='\n   연결 종료 : !quit 입력 or ctrl + c    '
+s+='\n   참여 중인 멤버 보기 : !member 입력     '
+s+='\n'
+s+='\n   이 프로그램 사용은 Jupyter Notebook에  '
+s+='\n           최적화되어 있습니다.             '
+s+='\n  --------------------------------------\n\n'
+
+
 def now_time(): # 현재 시각 반환하는 함수.
     now = datetime.datetime.now()
     nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
     return nowTime
 
-def send(lock):
+def send_func(lock):
 
     while True:
 
         try:
             global left_member_name
             recv = msg_info.get()
-            
+
             if recv[0]=='!quit' or len(recv[0])==0:
                 lock.acquire() # left_member_name에 대한 Lock.
                 msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.'
                 lock.release() # left_member_name에 대한 Lock.
 
             elif recv[0]=='!enter':
+                recv[1].send(bytes(bytess.encode()))
+
                 mem_msg='현재 멤버 : '
                 for mem in member_name:
                     if mem!='-1':
-                        mem_msg+='('+mem+') '
+                        mem_msg+=mem+'  '
 
                 recv[1].send(bytes(mem_msg.encode()))
                 msg=str('[SYSTEM] '+now_time()+member_name[recv[2]])+'님이 입장하였습니다.'
-            
+
             elif recv[0]=='!member':
                 mem_msg='현재 멤버 : '
                 for mem in member_name:
                     if mem!='-1':
-                        mem_msg+='('+mem+') '
+                        mem_msg+=mem+'  '
 
                 recv[1].send(bytes(mem_msg.encode()))
 
-                
+
             else:
-                msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0]) # recv[3]이 count.
+                msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0])
 
             for conn in socket_descriptors:
 
@@ -68,7 +80,7 @@ def send(lock):
 
 
 
-def recv(conn, count, lock):
+def recv_func(conn, count, lock):
 
     if socket_descriptors[count-1]=='-1':
         return -1
@@ -77,7 +89,7 @@ def recv(conn, count, lock):
         data = conn.recv(1024).decode()
         lock.acquire() # left_member_name와 count 에 대한 Lock.
 
-        msg_info.put([data, conn, count]) # 일단 queue에 넣고,
+        msg_info.put([data, conn, count]) 
 
         lock.release()
 
@@ -101,13 +113,9 @@ server_sock.listen(MAX_CLIENT_NUM)
 
 count = 0
 socket_descriptors=[] # 클라이언트들의 소켓 디스크립터 저장.
-
 member_name=['-1',] # 클라이언트들의 닉네임 저장, 인덱스 접근 편의를 위해 0번째 요소 '-1'로 초기화.
-
 msg_info = Queue()
-
 left_member_name=''
-
 lock=Lock()
 
 
@@ -134,19 +142,18 @@ while True:
 
     if count>1:
 
-        sender = Thread(target=send, args=(lock,))
-        #sender.daemon=True
+        sender = Thread(target=send_func, args=(lock,))
         sender.start()
-        #sender.join()
         pass
 
     else:
-        sender=Thread(target=send, args=(lock,))
+        sender=Thread(target=send_func, args=(lock,))
         sender.start()
-    
-    receiver=Thread(target=recv, args=(conn, count, lock))
+
+    receiver=Thread(target=recv_func, args=(conn, count, lock))
     receiver.start()
 
+server_sock.close()
 
 
 
