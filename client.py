@@ -29,15 +29,20 @@ def send_func(client_sock):
 
 def recv_func(client_sock):
     while True:
-        recv_data=(client_sock.recv(1024)).decode('utf-8')
-        if len(recv_data)==0:
-            print('[SYSTEM] 서버와의 연결이 끊어졌습니다.')
-            client_sock.close()
-            os._exit(1)
-        print(recv_data)
+        try:
+            recv_data=(client_sock.recv(1024)).decode('utf-8')
+            if len(recv_data)==0:
+                print('[SYSTEM] 서버와의 연결이 끊어졌습니다.')
+                client_sock.close()
+                os._exit(1)
+        except:
+            print('[SYSTEM] 메시지를 수신하지 못하였습니다.')
+        else:
+            print(recv_data)
+            pass
+
 
 client_sock=socket(AF_INET, SOCK_STREAM)
-
 try:
     client_sock.connect((Host,Port))
 
