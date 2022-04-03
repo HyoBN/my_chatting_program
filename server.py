@@ -29,10 +29,9 @@ def now_time(): # 현재 시각 반환하는 함수.
 def send_func(lock):
 
     while True:
-
         try:
             global left_member_name
-            recv = msg_info.get()
+            recv = received_msg_info.get()
 
             if recv[0]=='!quit' or len(recv[0])==0:
                 lock.acquire() # left_member_name에 대한 Lock.
@@ -42,27 +41,27 @@ def send_func(lock):
             elif recv[0]=='!enter':
                 recv[1].send(bytes(bytess.encode()))
 
-                mem_msg='현재 멤버 : '
-                for mem in member_name:
+                now_member_msg='현재 멤버 : '
+                for mem in member_name_list:
                     if mem!='-1':
-                        mem_msg+=mem+'  '
+                        now_member_msg+=mem+'  '
 
-                recv[1].send(bytes(mem_msg.encode()))
-                msg=str('[SYSTEM] '+now_time()+member_name[recv[2]])+'님이 입장하였습니다.'
+                recv[1].send(bytes(now_member_msg.encode()))
+                msg=str('[SYSTEM] '+now_time()+member_name_list[recv[2]])+'님이 입장하였습니다.'
 
             elif recv[0]=='!member':
-                mem_msg='현재 멤버 : '
-                for mem in member_name:
+                now_member_msg='현재 멤버 : '
+                for mem in member_name_list:
                     if mem!='-1':
-                        mem_msg+=mem+'  '
+                        now_member_msg+=mem+'  '
 
-                recv[1].send(bytes(mem_msg.encode()))
+                recv[1].send(bytes(now_member_msg.encode()))
 
 
             else:
-                msg = str(now_time() + member_name[recv[2]]) + ' : ' + str(recv[0])
+                msg = str(now_time() + member_name_list[recv[2]]) + ' : ' + str(recv[0])
 
-            for conn in socket_descriptors:
+            for conn in socket_descriptor_list:
 
                 if conn =='-1': # 연결 종료한 클라이언트 경우.
                     continue
@@ -82,23 +81,23 @@ def send_func(lock):
 
 def recv_func(conn, count, lock):
 
-    if socket_descriptors[count-1]=='-1':
+    if socket_descriptor_list[count-1]=='-1':
         return -1
     while True:
         global left_member_name
         data = conn.recv(1024).decode()
         lock.acquire() # left_member_name와 count 에 대한 Lock.
 
-        msg_info.put([data, conn, count]) 
+        received_msg_info.put([data, conn, count]) 
 
         lock.release()
 
         if data == '!quit' or len(data)==0: # 해당 클라이언트가 연결을 종료하려고 할 때.
             lock.acquire() # left_member_name와 count 에 대한 Lock.
-            socket_descriptors[count-1]='-1'
-            left_member_name=member_name[count] # 종료한 클라이언트 닉네임 저장.
-            print(str(now_time()+ member_name[count]) + '님이 연결을 종료하였습니다.')
-            member_name[count]='-1'
+            socket_descriptor_list[count-1]='-1'
+            left_member_name=member_name_list[count] # 종료한 클라이언트 닉네임 저장.
+            print(str(now_time()+ member_name_list[count]) + '님이 연결을 종료하였습니다.')
+            member_name_list[count]='-1'
             lock.release()
             break
 
@@ -112,9 +111,9 @@ server_sock.listen(MAX_CLIENT_NUM)
 
 
 count = 0
-socket_descriptors=[] # 클라이언트들의 소켓 디스크립터 저장.
-member_name=['-1',] # 클라이언트들의 닉네임 저장, 인덱스 접근 편의를 위해 0번째 요소 '-1'로 초기화.
-msg_info = Queue()
+socket_descriptor_list=['-1',] # 클라이언트들의 소켓 디스크립터 저장.
+member_name_list=['-1',] # 클라이언트들의 닉네임 저장, 인덱스 접근 편의를 위해 0번째 요소 '-1'로 초기화.
+received_msg_info = Queue()
 left_member_name=''
 lock=Lock()
 
@@ -122,23 +121,24 @@ lock=Lock()
 while True:
     count = count +1
     conn, addr = server_sock.accept()
-    recv_name=''
+    # conn과 addr에는 연결된 클라이언트의 정보가 저장된다.
+    # conn : 연결된 소켓
+    # addr[0] : 연결된 클라이언트의 ip 주소
+    # addr[1] : 연결된 클라이언트의 port 번호
+    client_name=''
 
     while True:
-        recv_name=conn.recv(1024).decode() # 유저 닉네임
+        client_name=conn.recv(1024).decode() # 유저 닉네임
 
-        if not recv_name in member_name:
+        if not client_name in member_name_list:
             conn.send(bytes('checked'.encode()))
             break
-
         else:
-            msg='overlapped'
-            conn.send(bytes(msg.encode()))
+            conn.send(bytes('overlapped'.encode()))
 
-    member_name.append(recv_name)
-    socket_descriptors.append(conn)
-
-    print(str(now_time())+recv_name+'님이 연결되었습니다. 연결 ip 주소 : '+ str(addr[0]))
+    member_name_list.append(client_name)
+    socket_descriptor_list.append(conn)
+    print(str(now_time())+client_name+'님이 연결되었습니다. 연결 ip : '+ str(addr[0]))
 
     if count>1:
 
