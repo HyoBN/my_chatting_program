@@ -22,7 +22,7 @@ def send_func():
             print('연결을 종료하였습니다.')
             break 
     client_sock.close()
-    os._exit()
+    os._exit(1)# 클라이언트 종료 관련 수정중 ing  ~
 
 def recv_func():
     while True:
@@ -47,7 +47,7 @@ except ConnectionRefusedError:
     print('서버에 연결할 수 없습니다.')
     print('1. 서버의 ip주소와 포트번호가 올바른지 확인하십시오.')
     print('2. 서버 실행 여부를 확인하십시오.')
-    os._exit(os1)
+    os._exit(1)
 
 except:
     print('프로그램을 정상적으로 실행할 수 없습니다. 만든 사람에게 문의하세요.')

@@ -23,8 +23,8 @@ s+='\n  --------------------------------------\n\n'
 
 def now_time(): # 현재 시각 반환하는 함수.
     now = datetime.datetime.now()
-    nowTime=now.strftime('[%H:%M] ') # 현재 시각 저장.
-    return nowTime
+    time_str=now.strftime('[%H:%M] ') # 현재 시각 저장.
+    return time_str
 
 def send_func(lock):
 
@@ -33,7 +33,7 @@ def send_func(lock):
             global left_member_name
             recv = received_msg_info.get()
 
-            if recv[0]=='!quit' or len(recv[0])==0:
+            if recv[0]=='!quit' or len(recv[0])==0:  
                 lock.acquire() # left_member_name에 대한 Lock.
                 msg=str('[SYSTEM] '+now_time()+left_member_name)+'님이 연결을 종료하였습니다.'
                 lock.release() # left_member_name에 대한 Lock.
@@ -77,11 +77,9 @@ def send_func(lock):
         except:
             pass
 
-
-
 def recv_func(conn, count, lock):
 
-    if socket_descriptor_list[count-1]=='-1':
+    if socket_descriptor_list[count]=='-1':
         return -1
     while True:
         global left_member_name
@@ -93,22 +91,24 @@ def recv_func(conn, count, lock):
         lock.release()
 
         if data == '!quit' or len(data)==0: # 해당 클라이언트가 연결을 종료하려고 할 때.
+            # len(data)==0 은 해당 클라이언트의 소켓 연결이 끊어진 경우에 대한 예외 처리임.
             lock.acquire() # left_member_name와 count 에 대한 Lock.
-            socket_descriptor_list[count-1]='-1'
-            left_member_name=member_name_list[count] # 종료한 클라이언트 닉네임 저장.
             print(str(now_time()+ member_name_list[count]) + '님이 연결을 종료하였습니다.')
+            left_member_name=member_name_list[count] # 종료한 클라이언트 닉네임 저장.
+            socket_descriptor_list[count]= '-1' # 4/4 문제 발생시 '-1'이 아니라 None (NULL)로 설정해보기
             member_name_list[count]='-1'
             lock.release()
             break
 
     conn.close()
 
+    
+    
 print(now_time()+'서버를 시작합니다')
 server_sock=socket(AF_INET, SOCK_STREAM)
 server_sock.setsockopt(SOL_SOCKET, SO_REUSEADDR, 1) # Time-wait 에러 방지.
 server_sock.bind((HOST, PORT))
 server_sock.listen(MAX_CLIENT_NUM)
-
 
 count = 0
 socket_descriptor_list=['-1',] # 클라이언트들의 소켓 디스크립터 저장.
@@ -116,7 +116,6 @@ member_name_list=['-1',] # 클라이언트들의 닉네임 저장, 인덱스 접
 received_msg_info = Queue()
 left_member_name=''
 lock=Lock()
-
 
 while True:
     count = count +1
