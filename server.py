@@ -39,13 +39,11 @@ def send_func(lock):
                 lock.release() # left_member_name에 대한 Lock.
 
             elif recv[0]=='!enter':
-                recv[1].send(bytes(bytess.encode()))
 
                 now_member_msg='현재 멤버 : '
                 for mem in member_name_list:
                     if mem!='-1':
-                        now_member_msg+=mem+'  '
-
+                        now_member_msg+='['+mem+'] '
                 recv[1].send(bytes(now_member_msg.encode()))
                 msg=str('[SYSTEM] '+now_time()+member_name_list[recv[2]])+'님이 입장하였습니다.'
 
@@ -53,7 +51,7 @@ def send_func(lock):
                 now_member_msg='현재 멤버 : '
                 for mem in member_name_list:
                     if mem!='-1':
-                        now_member_msg+=mem+'  '
+                        now_member_msg+='['+mem+'] '
 
                 recv[1].send(bytes(now_member_msg.encode()))
 
@@ -153,7 +151,3 @@ while True:
     receiver.start()
 
 server_sock.close()
-
-
-
-
