@@ -39,7 +39,6 @@ def send_func(lock):
                 lock.release() # left_member_name에 대한 Lock.
 
             elif recv[0]=='!enter':
-
                 now_member_msg='현재 멤버 : '
                 for mem in member_name_list:
                     if mem!='-1':
@@ -52,10 +51,16 @@ def send_func(lock):
                 for mem in member_name_list:
                     if mem!='-1':
                         now_member_msg+='['+mem+'] '
-
                 recv[1].send(bytes(now_member_msg.encode()))
 
-
+            elif recv[0].find('/w')==0: # 귓속말 기능 추가
+                split_msg=recv[0].split() # recv[0]:서버에서 recv받은 메시지
+                if split_msg[1] in member_name_list:
+                    msg=now_time()+'(귓속말) '+member_name_list[recv[2]] +' : '
+                    msg+=recv[0][len(split_msg[1])+4:len(recv[0])]
+                    idx=member_name_list.index(split_msg[1])
+                    socket_descriptor_list[idx].send(bytes(msg.encode()))
+                    continue #다른 클라이언트들에게는 send할필요 없기 때문.
             else:
                 msg = str(now_time() + member_name_list[recv[2]]) + ' : ' + str(recv[0])
 
@@ -93,7 +98,7 @@ def recv_func(conn, count, lock):
             lock.acquire() # left_member_name와 count 에 대한 Lock.
             print(str(now_time()+ member_name_list[count]) + '님이 연결을 종료하였습니다.')
             left_member_name=member_name_list[count] # 종료한 클라이언트 닉네임 저장.
-            socket_descriptor_list[count]= '-1' # 4/4 문제 발생시 '-1'이 아니라 None (NULL)로 설정해보기
+            socket_descriptor_list[count]= '-1' # 문제 발생시 '-1'이 아니라 None (NULL)로 설정해보기
             member_name_list[count]='-1'
             lock.release()
             break
