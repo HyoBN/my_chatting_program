@@ -14,10 +14,11 @@ MAX_CLIENT_NUM = 1 # 연결할 수 있는 최대 클라이언트 수.
 s=''
 s+='\n  -------------< 사용 방법 >-------------'
 s+='\n   연결 종료 : !quit 입력 or ctrl + c    '
-s+='\n   참여 중인 멤버 보기 : !member 입력     '
+s+='\n   참여 중인 멤버 보기 : !member 입력      '
+s+='\n   귓속말 보내기 : /w [상대방이름] [메시지]   '
 s+='\n'
-s+='\n   이 프로그램 사용은 Jupyter Notebook에  '
-s+='\n           최적화되어 있습니다.             '
+s+='\n     이 프로그램은 Jupyter Notebook에  '
+s+='\n            최적화되어 있습니다.             '
 s+='\n  --------------------------------------\n\n'
 
 
@@ -30,7 +31,6 @@ def send_func(lock):
 
     while True:
         try:
-            global left_member_name
             recv = received_msg_info.get()
 
             if recv[0]=='!quit' or len(recv[0])==0:  
@@ -52,6 +52,7 @@ def send_func(lock):
                     if mem!='-1':
                         now_member_msg+='['+mem+'] '
                 recv[1].send(bytes(now_member_msg.encode()))
+                continue
 
             elif recv[0].find('/w')==0: # 귓속말 기능 추가
                 split_msg=recv[0].split() # recv[0]:서버에서 recv받은 메시지
@@ -61,17 +62,17 @@ def send_func(lock):
                     idx=member_name_list.index(split_msg[1])
                     socket_descriptor_list[idx].send(bytes(msg.encode()))
                     continue #다른 클라이언트들에게는 send할필요 없기 때문.
+                else:
+                    msg='해당 사용자가 존재하지 않습니다.'
+                    recv[1].send(bytes(msg.encode()))
             else:
                 msg = str(now_time() + member_name_list[recv[2]]) + ' : ' + str(recv[0])
 
             for conn in socket_descriptor_list:
-
                 if conn =='-1': # 연결 종료한 클라이언트 경우.
                     continue
-
-                if recv[1] != conn: #메시지 송신하는 클라이언트에게는 자신의 메시지가 출력되지 않게 함
+                elif recv[1] != conn: #메시지 송신한 클라이언트에게는 보내지 않음. 메시지를 보냄으로써 출력되어 있기때문 
                     conn.send(bytes(msg.encode()))
-
                 else:
                     pass
 
@@ -127,13 +128,12 @@ while True:
     # conn : 연결된 소켓
     # addr[0] : 연결된 클라이언트의 ip 주소
     # addr[1] : 연결된 클라이언트의 port 번호
-    client_name=''
 
     while True:
         client_name=conn.recv(1024).decode() # 유저 닉네임
 
         if not client_name in member_name_list:
-            conn.send(bytes('checked'.encode()))
+            conn.send(bytes('yes'.encode()))
             break
         else:
             conn.send(bytes('overlapped'.encode()))
@@ -143,15 +143,12 @@ while True:
     print(str(now_time())+client_name+'님이 연결되었습니다. 연결 ip : '+ str(addr[0]))
 
     if count>1:
-
         sender = Thread(target=send_func, args=(lock,))
         sender.start()
         pass
-
     else:
         sender=Thread(target=send_func, args=(lock,))
         sender.start()
-
     receiver=Thread(target=recv_func, args=(conn, count, lock))
     receiver.start()
 
