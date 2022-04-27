@@ -55,19 +55,17 @@ except:
 else:
     print('[SYSTEM] 서버와 연결되었습니다.')
 
-
 while True:
     name = input('사용하실 닉네임을 입력하세요 :')     
     if ' ' in name:
         print('공백은 입력이 불가능합니다.')
         continue
-
-    client_sock.send(bytes(name.encode()))
+    client_sock.send(name.encode())
     is_possible_name=client_sock.recv(1024).decode()
     
     if is_possible_name=='yes':
         print(now_time()+ '채팅방에 입장하였습니다.')
-        client_sock.send(bytes('!enter'.encode()))
+        client_sock.send('!enter'.encode())
         break
 
     elif is_possible_name=='overlapped':
